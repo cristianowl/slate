@@ -2,14 +2,10 @@
 title: API Reference
 
 language_tabs: # must be one of https://git.io/vQNgJ
-  - shell
-  - ruby
-  - python
-  - javascript
+  - JSON
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/lord/slate'>Documentation Powered by Slate</a>
+  - <a href='mailto:tech-yoda@conductor.com.br'>Suporte</a>
 
 includes:
   - errors
@@ -17,223 +13,119 @@ includes:
 search: true
 ---
 
-# Introduction
+# Introdução
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Bem vindo a documentação da API de conciliação de boletos. Este serviço disponibiliza algumas consultas que permitem obter diversas informações relacionadas a emissão e liquidação de boletos.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+As informações disponíveis na API, são geradas por outros serviços:
 
-This example API documentation page was created with [Slate](https://github.com/lord/slate). Feel free to edit it and use it as a base for your own API's documentation.
-
-# Authentication
-
-> To authorize, use this code:
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
-
-```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
+### Projetos relacionados
+Projeto | URL
+--------- | -----------
+yoda-billet-s3-event | https://github.com/cdt-baas/yoda-billet-s3-event
+yoda-billet-data | https://github.com/cdt-baas/yoda-billet-data
+yoda-billet-extractor | https://github.com/cdt-baas/yoda-billet-extractor
 
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+Você precisa de credenciais válidas para consultar este serviço em qualquer ambiente como DEV, HML ou PRD.
 </aside>
 
-# Kittens
+# Boletos
 
-## Get All Kittens
+## Listar Boletos
+`/yoda-billet-api/billets`
+> JSON de retorno:
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
+```json
+[
+  'pagination': {
+    "total": Integer,
+    "total_pages": Integer,
+    "current_page": Integer,
+    "page_size": Integer  
+  }
+  'billets' : [
+    {
+      "id_billet_full": Integer,
+      "document_number": String,
+      "amount": Float,
+      "received_date": Date,
+      "id_account": Integer,
+      "id_issuer": Integer,
+      "id_billet_pier" : Integer,
+      "status": Integer,
+      "processing_date": Date,
+      "due_date": Date,
+      "payment_date": Date,
+      "reconciliation_status": Integer 
+    },
+    {
+      "id_billet_full": Integer,
+      "document_number": String,
+      "amount": Float,
+      "received_date": Date,
+      "id_account": Integer,
+      "id_issuer": Integer,
+      "id_billet_pier" : Integer,
+      "status": Integer,
+      "processing_date": Date,
+      "due_date": Date,
+      "payment_date": Date,
+      "reconciliation_status": Integer 
+    }
+  ]
+]
 ```
+### Parametros de consulta/filtro
 
-```python
-import kittn
+Parametro | Obrigatório | Descrição
+--------- | ------- | -----------
+status | falso | Status do boleto (1 - Emitido, 2 - Cancelado s/ registro, 3 - Registrado, 4 - Pago, 5 - Cancelado c/ registro) 
+reconciliation_status | false | Filtrar por status da conciliação (1 - Conciliado, 0 - Não conciliado)
+payment_date | false | Caso o boleto esteja pago, a consulta poderá ser feita por data
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
 
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
+## Resumo da conciliação diária
+`/yoda-billet-api/summary`
+> JSON de retorno:
 
 ```json
 [
   {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
+    "issuer": String,
+    "total_items": Integer,
+    "total_amount" Float
   },
   {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
+    "issuer": String,
+    "total_items": Integer,
+    "total_amount" Float
   }
 ]
 ```
+### Parametros de consulta/filtro
 
-This endpoint retrieves all kittens.
-
-### HTTP Request
-
-`GET http://example.com/api/kittens`
-
-### Query Parameters
-
-Parameter | Default | Description
+Parametro | Obrigatório | Descrição
 --------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+payment_date | Verdadeiro | Data para consultar as conciliações do dia
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
 
-## Get a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
+## Paginação
+> Estrutura gerada dentro do retorno:
 
 ```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
+  [
+    'pagination': {
+      "total": Integer,
+      "total_pages": Integer,
+      "current_page": Integer,
+      "page_size": Integer  
+    }
+  ]
 ```
+Os recursos que retornam mais que 50 registros possuem um paginador gerado pelo SQLAlchemy + Flask, os seguinte parametros devem ser informados na query:
 
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
-### HTTP Request
-
-`GET http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to retrieve
-
-## Delete a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint deletes a specific kitten.
-
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
-
+Parametro | Obrigatório | Descrição
+--------- | ------- | -----------
+page | Verdadeiro | Página atual
+page_size | Verdadeiro | Tamanho da página
